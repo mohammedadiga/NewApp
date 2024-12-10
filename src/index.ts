@@ -2,20 +2,21 @@ import express, { NextFunction, Request, Response } from 'express';
 
 import helmet from 'helmet';
 import cors from 'cors';
+import morgan from 'morgan';
 import 'dotenv/config';
+
+// middleware Hokies
+import { ErrorMiddleware } from './middlewares/error';
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-/* Middleware */
+/* Server Security */
 
 app.use(helmet());
-
-// cors => cross origin resource sharing
 app.use(cors( {origin: process.env.ORIGIN} ));
-
-
 app.use(express.json({ limit: "50mb" }));
+app.use(morgan("dev"));
 
 /* Routes */
 
@@ -29,16 +30,16 @@ app.get('/test', (req: Request, res: Response, next: NextFunction) => {
 
 // all api
 app.all('*', (req: Request, res: Response, next: NextFunction) => {
-    // const err = new Error(`Route ${req.originalUrl} not found`) as any;`
-    // err.statusCode = 404;
-    // next(err);
     res.status(404).json({ 
         success: false,
         message: `Route ${req.originalUrl} not found`
     });
 });
 
+// middleware
+app.use(ErrorMiddleware);
+
 // Start server
-app.listen(process.env.PORT, () => {
-    console.log(`Server is connected with port ${process.env.PORT}`);
+app.listen(port, () => {
+    console.log(`Server is connected with port ${port}`);
 });
